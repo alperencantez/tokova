@@ -1,5 +1,5 @@
 import { TKIntervals } from './types';
-import Tokova from './index';
+import { Tokova } from './index';
 
 async function runTests() {
     console.log('🧪 Starting Tokova Tests\n');

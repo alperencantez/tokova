@@ -17,7 +17,7 @@ import { Mutex } from 'async-mutex';
  *     reviveFromLatest: true,
  * });
  *
- * tk.consume(10);
+ *await tk.consume(10);
  * ```
  */
 class Tokova implements ITokova {
@@ -74,7 +74,7 @@ class Tokova implements ITokova {
             log.info(`Current bucket state: ${JSON.stringify(context.bucket)}`);
         },
     })
-    private async addTokens(amount: number) {
+    private async addTokens(amount: number): Promise<void> {
         return this._mutex.runExclusive(async () => {
             if (this.bucket.tokens + amount <= this.options.limit) {
                 this.bucket.tokens += amount;
@@ -82,24 +82,6 @@ class Tokova implements ITokova {
                 this.bucket.tokens = this.options.limit;
             }
         });
-    }
-
-    /**
-     * Refill the bucket.
-     *
-     * @example
-     * ```ts
-     * tk.refill();
-     * ```
-     */
-    @ErrorHandler({ errorMessage: 'Failed to refill tokens', logErrors: true })
-    private async refill() {
-        const now = Date.now();
-        const refillRate = this.options.limit / this.options.interval;
-        const refillAmount = Math.floor((now - this.bucket.lastRefill) * refillRate);
-
-        this.bucket.tokens = Math.min(this.bucket.tokens + refillAmount, this.options.limit);
-        this.bucket.lastRefill = now;
     }
 
     /**
@@ -121,11 +103,9 @@ class Tokova implements ITokova {
             }
         },
     })
-    public async consume(amount: number) {
+    public async consume(amount: number): Promise<void> {
         const release = await this._mutex.acquire();
         try {
-            this.refill();
-
             if (this.bucket.tokens < amount) {
                 throw new Error('Not enough tokens');
             }
@@ -144,9 +124,14 @@ class Tokova implements ITokova {
      * tk.clearBucket();
      * ```
      */
-    public clearBucket() {
-        this.bucket.tokens = 0;
-        this.bucket.lastRefill = Date.now();
+    public async clearBucket(): Promise<void> {
+        const release = await this._mutex.acquire();
+        try {
+            this.bucket.tokens = 0;
+            this.bucket.lastRefill = Date.now();
+        } finally {
+            release();
+        }
     }
 
     /**
@@ -160,7 +145,6 @@ class Tokova implements ITokova {
     public async getTokenCount(): Promise<number> {
         const release = await this._mutex.acquire();
         try {
-            this.refill();
             return this.bucket.tokens;
         } finally {
             release();
@@ -168,4 +152,4 @@ class Tokova implements ITokova {
     }
 }
 
-export default Tokova;
+export { Tokova };

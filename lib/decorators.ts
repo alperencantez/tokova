@@ -1,4 +1,4 @@
-import Tokova from '.';
+import { Tokova } from '.';
 import { Util } from './util';
 import { log } from '@clack/prompts';
 
@@ -13,11 +13,13 @@ export function ErrorHandler(opt: {
         descriptor.value = async function (...args: any[]) {
             try {
                 return await originalMethod.apply(this, args);
-            } catch (error) {
+            } catch (error: any) {
                 const bucket = (this as Tokova).bucket;
                 const options = (this as Tokova).options;
 
-                Util.persistBucket(Date.now().toString(), bucket);
+                if (!String(opt.errorMessage).includes('Failed to consume tokens')) {
+                    Util.persistBucket(Date.now().toString(), bucket);
+                }
 
                 if (opt.logErrors) {
                     log.error(

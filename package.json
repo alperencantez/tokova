@@ -1,0 +1,27 @@
+{
+    "name": "@cantez/tokova",
+    "description": "Token bucket rate limiter middleware for Node.js applications.",
+    "license": "MIT",
+    "main": "dist/index.js",
+    "private": false,
+    "version": "1.0.0",
+    "contributors": [
+        {
+            "name": "Alperen Cantez",
+            "email": "alperen.cantez@outlook.com"
+        }
+    ],
+    "scripts": {
+        "build": "tsc",
+        "test": "bun lib/test.ts"
+    },
+    "devDependencies": {
+        "@preconstruct/cli": "^2.8.12",
+        "@types/node": "^22.15.18",
+        "typescript": "^5.8.3"
+    },
+    "dependencies": {
+        "@clack/prompts": "^0.10.1",
+        "async-mutex": "^0.5.0"
+    }
+}
